@@ -1,4 +1,3 @@
-import Papa from "papaparse";
 import { ProfileData, ScheduleRowData, ShiftPreferenceData } from "./types";
 import dayjs, { Dayjs } from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -7,7 +6,7 @@ import isBetween from "dayjs/plugin/isBetween";
 dayjs.extend(duration);
 dayjs.extend(isBetween);
 
-const PERIOD_LENGTH = 21;
+const BASE_URL = "https://azifptzzmwpatntupaae.supabase.co/rest/v1";
 
 export const getDatesBetween = (startDate: Dayjs, endDate: Dayjs): Dayjs[] => {
   const dates = [];
@@ -21,20 +20,16 @@ export const getDatesBetween = (startDate: Dayjs, endDate: Dayjs): Dayjs[] => {
   return dates;
 };
 
-const parseCSV = async (filePath: string): Promise<any> => {
-  const response = await fetch(filePath);
-  const csvText = await response.text();
-  const parsedCSV = Papa.parse(csvText, {
-    header: true,
-    skipEmptyLines: true,
-  });
-  return parsedCSV.data;
-};
-
 export const parseProfiles = async (): Promise<ProfileData[]> => {
-  const csvData = await parseCSV("../dummy_data/profiles.csv");
+  const res = await fetch(`${BASE_URL}/profile`, {
+    method: "GET",
+    headers: {
+      "apikey": process.env.API_KEY as string,
+    },
+  });
+  const data = await res.json();
 
-  const profiles = csvData.map((profile: any) => {
+  const profiles = data.map((profile: any) => {
     return {
       id: profile.id,
       fullName: profile.full_name,
@@ -47,9 +42,15 @@ export const parseProfiles = async (): Promise<ProfileData[]> => {
 export const parseShiftPreferences = async (): Promise<
   ShiftPreferenceData[]
 > => {
-  const csvData = await parseCSV("../dummy_data/shift_preferences.csv");
+  const res = await fetch(`${BASE_URL}/shift_preference`, {
+    method: "GET",
+    headers: {
+      "apikey": process.env.API_KEY as string,
+    },
+  });
+  const data = await res.json();
 
-  const shiftPreferences = csvData.map((shiftPreference: any) => {
+  const shiftPreferences = data.map((shiftPreference: any) => {
     return {
       id: shiftPreference.id,
       profileId: shiftPreference.profile_id,
@@ -63,14 +64,16 @@ export const parseShiftPreferences = async (): Promise<
 export const getScheduleRows = async (
   profiles: ProfileData[],
   shiftPreferences: ShiftPreferenceData[],
-  startDate: Dayjs
+  startDate: Dayjs,
+  endDate: Dayjs
 ): Promise<ScheduleRowData[]> => {
   const combinedData = profiles.map((profile) => {
     const relevantShifts = shiftPreferences.filter(
       (sp) => sp.profileId === profile.id
     );
 
-    const shifts: string[] = new Array(PERIOD_LENGTH).fill("");
+    const periodLength = dayjs(endDate).diff(startDate, "day") + 1;
+    const shifts: string[] = new Array(periodLength).fill("");
     for (const shift of relevantShifts) {
       const shiftStartDay = dayjs(shift.date);
       const offset = Math.floor(
@@ -84,8 +87,6 @@ export const getScheduleRows = async (
       shifts: shifts,
     };
   });
-
-  console.log(combinedData);
 
   return combinedData;
 };

@@ -1,37 +1,25 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import {
   getDatesBetween,
   getScheduleRows,
   parseProfiles,
   parseShiftPreferences,
 } from "./schedule";
-import { ScheduleRowData } from "./types";
 import dayjs from "dayjs";
 
-export default function Home() {
-  const [schedule, setSchedule] = useState<ScheduleRowData[]>([]);
-
+export default async function Home() {
   const periodStartDate = dayjs("2023-09-17");
   const periodEndDate = dayjs("2023-10-07");
   const dates = getDatesBetween(periodStartDate, periodEndDate);
 
-  const fetchData = async () => {
-    const profiles = await parseProfiles();
-    const shiftPreferences = await parseShiftPreferences();
+  const profiles = await parseProfiles();
+  const shiftPreferences = await parseShiftPreferences();
 
-    const scheduleData = await getScheduleRows(
-      profiles,
-      shiftPreferences,
-      periodStartDate
-    );
-    setSchedule(scheduleData);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const schedule = await getScheduleRows(
+    profiles,
+    shiftPreferences,
+    periodStartDate,
+    periodEndDate
+  );
 
   return (
     <main className="p-16">
