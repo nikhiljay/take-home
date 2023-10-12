@@ -52,10 +52,8 @@ export const parseShiftPreferences = async (): Promise<
   const shiftPreferences = csvData.map((shiftPreference: any) => {
     return {
       id: shiftPreference.id,
-      startTime: shiftPreference.start_time,
-      endTime: shiftPreference.end_time,
-      shiftType: shiftPreference.shift_type,
       profileId: shiftPreference.profile_id,
+      date: shiftPreference.date,
     };
   });
 
@@ -65,7 +63,7 @@ export const parseShiftPreferences = async (): Promise<
 export const getScheduleRows = async (
   profiles: ProfileData[],
   shiftPreferences: ShiftPreferenceData[],
-  startDate: Dayjs,
+  startDate: Dayjs
 ): Promise<ScheduleRowData[]> => {
   const combinedData = profiles.map((profile) => {
     const relevantShifts = shiftPreferences.filter(
@@ -74,7 +72,7 @@ export const getScheduleRows = async (
 
     const shifts: string[] = new Array(PERIOD_LENGTH).fill("");
     for (const shift of relevantShifts) {
-      const shiftStartDay = dayjs(shift.startTime);
+      const shiftStartDay = dayjs(shift.date);
       const offset = Math.floor(
         dayjs.duration(shiftStartDay.diff(startDate)).asDays()
       );

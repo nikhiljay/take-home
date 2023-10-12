@@ -5,9 +5,8 @@ export interface ProfileData {
 
 export interface ShiftPreferenceData {
   id: number;
-  startTime: string;
-  endTime: string;
   profileId: string;
+  date: string;
 }
 
 export interface ScheduleRowData {
