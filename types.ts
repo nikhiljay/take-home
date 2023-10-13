@@ -11,5 +11,6 @@ export interface ShiftPreferenceData {
 
 export interface ScheduleRowData {
   fullName: string;
+  fairness?: number;
   shifts: string[];
 }
