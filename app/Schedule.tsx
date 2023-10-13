@@ -33,7 +33,7 @@ export default function Schedule({
     <>
       {schedule.map((row: ScheduleRowData) => (
         <div key={row.fullName} className="flex">
-          <div className="w-56 flex justify-between items-center border-r border-b border-l">
+          <div className="w-56 flex flex-shrink-0 justify-between items-center border-r border-b border-l">
             <p className="whitespace-nowrap flex-shrink-0 py-2 pl-2">
               {row.fullName}
             </p>

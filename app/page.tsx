@@ -1,7 +1,8 @@
 import { getDatesBetween, constructScheduleRows } from "./actions";
 import dayjs from "dayjs";
-import Schedule from "./Schedule";
+import Schedule from "./schedule";
 import { getProfiles, getShiftPreferences } from "@/utils/fetchData";
+import { Suspense } from "react";
 
 export default async function Home() {
   const periodStartDate = dayjs("2023-09-17");
@@ -19,7 +20,7 @@ export default async function Home() {
 
   return (
     <main className="pt-16 px-12">
-      <h1 className="font-medium text-lg mb-5">Schedule</h1>
+      <h1 className="font-medium text-xl mb-5">Schedule</h1>
       <div>
         <div className="flex">
           <h2 className="w-56 whitespace-nowrap flex-shrink-0 border-r border-b py-2"></h2>
@@ -27,7 +28,7 @@ export default async function Home() {
             {dates.map((date) => (
               <div
                 key={date.format("M/D")}
-                className="flex justify-center items-center w-14 border-r border-b py-2 text-center"
+                className="flex justify-center items-center w-14 h-14 border-r border-b py-2 text-center"
               >
                 <div>
                   <p className="text-sm">{date.format("M/D")}</p>
