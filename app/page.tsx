@@ -2,7 +2,6 @@ import { getDatesBetween, constructScheduleRows } from "./actions";
 import dayjs from "dayjs";
 import Schedule from "./schedule";
 import { getProfiles, getShiftPreferences } from "@/utils/fetchData";
-import { Suspense } from "react";
 
 export default async function Home() {
   const periodStartDate = dayjs("2023-09-17");
