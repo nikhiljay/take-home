@@ -2,7 +2,7 @@
 
 import { ScheduleRowData } from "@/types";
 import { useState } from "react";
-import { calculateAverageFairness, randomAutoBalance } from "./actions";
+import { autoBalance, calculateAverageFairness } from "./actions";
 
 export default function Schedule({
   initialScheduleData,
@@ -11,23 +11,6 @@ export default function Schedule({
 }) {
   const [schedule, setSchedule] = useState(initialScheduleData);
   const avgFairness = calculateAverageFairness(schedule);
-
-  const autoBalance = async (
-    initialScheduleData: ScheduleRowData[],
-    currentSchedule: ScheduleRowData[]
-  ): Promise<ScheduleRowData[]> => {
-    const newSchedule = randomAutoBalance(initialScheduleData, currentSchedule);
-    const newAvgFairness = calculateAverageFairness(newSchedule);
-
-    setSchedule(newSchedule);
-
-    if (newAvgFairness < 50) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return autoBalance(initialScheduleData, newSchedule);
-    } else {
-      return newSchedule;
-    }
-  };
 
   return (
     <>
@@ -58,7 +41,10 @@ export default function Schedule({
           <p className="mb-3">Average Fairness: {`${avgFairness}%`}</p>
           <button
             className="px-4 py-2 bg-black hover:bg-gray-700 text-white rounded-md mb-5"
-            onClick={() => autoBalance(initialScheduleData, schedule)}
+            onClick={() => {
+              const newSchedule = autoBalance(initialScheduleData, schedule);
+              setSchedule(newSchedule);
+            }}
           >
             Auto-Balance
           </button>

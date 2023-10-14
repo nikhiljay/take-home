@@ -83,32 +83,75 @@ export const calculateAverageFairness = (
   return Math.round(totalFairness / schedule.length);
 };
 
-export const randomAutoBalance = (
+export function autoBalance(
   initialScheduleData: ScheduleRowData[],
   schedule: ScheduleRowData[]
-) => {
-  const shifts = schedule.map((row) => row.shifts);
+) {
+  let matrix: string[][] = JSON.parse(
+    JSON.stringify(schedule.map((profile) => profile.shifts))
+  );
 
-  const shiftsFlattened = shifts.reduce((acc, val) => acc.concat(val), []);
-  let shiftsShuffled = shiftsFlattened
-    .map((value) => ({ value, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ value }) => value);
+  const numProfiles = matrix.length;
+  const numDays = matrix[0].length;
+  const minShiftsPerDay = 3;
+  const maxShiftsPerDay = 5;
 
-  const shiftsReshaped = [];
-  const rows = shifts.length;
-  const cols = shifts[0].length;
-  for (let i = 0; i < rows; i++) {
-    shiftsReshaped[i] = shiftsShuffled.slice(i * cols, (i + 1) * cols);
+  // Calculate initial shift counts for all days
+  const shiftCounts = Array(numDays)
+    .fill(0)
+    .map((_, dayIdx) =>
+      matrix.reduce(
+        (count, profileShifts) =>
+          count + (profileShifts[dayIdx] === "X" ? 1 : 0),
+        0
+      )
+    );
+
+  // Keep re-balancing until no changes are made
+  let changesMade = true;
+  while (changesMade) {
+    changesMade = false;
+
+    // Iterate over each day
+    for (let day = 0; day < numDays; day++) {
+      let shortage = minShiftsPerDay - shiftCounts[day];
+
+      // Try to balance the shifts for each profile until shortage is met
+      for (let profile = 0; profile < numProfiles && shortage > 0; profile++) {
+        if (
+          matrix[profile][day] !== "X" &&
+          shiftCounts[day] < maxShiftsPerDay
+        ) {
+          for (let sourceDay = 0; sourceDay < numDays; sourceDay++) {
+            // Look for a day with an extra shift to reallocate
+            if (
+              matrix[profile][sourceDay] === "X" &&
+              shiftCounts[sourceDay] > minShiftsPerDay
+            ) {
+              // Swap the shift
+              matrix[profile][sourceDay] = "";
+              matrix[profile][day] = "X";
+
+              // Adjust counts post-swap
+              shiftCounts[day]++;
+              shiftCounts[sourceDay]--;
+              shortage--;
+
+              changesMade = true;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 
-  const scheduleRows = shiftsReshaped.map((shift, index) => {
+  let newSchedule = matrix.map((profileShifts, profileIdx) => {
     return {
-      fullName: schedule[index].fullName,
-      shifts: shift,
+      fullName: schedule[profileIdx].fullName,
+      shifts: profileShifts,
     };
   });
 
-  const newSchedule = calculateFairness(initialScheduleData, scheduleRows);
-  return newSchedule;
-};
+  return calculateFairness(initialScheduleData, newSchedule);
+}
